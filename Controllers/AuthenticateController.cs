@@ -69,7 +69,7 @@ namespace API9.Controllers
                     rolename = user.RoleType
                 });
             }
-            return Unauthorized();
+            return StatusCode(StatusCodes.Status401Unauthorized, new Response { Status = "UnAuthorized", Message = "UserName or Password is incorrect" });
         }
 
         [HttpPost]
@@ -81,6 +81,10 @@ namespace API9.Controllers
             if (userExists != null)
                 return StatusCode(StatusCodes.Status500InternalServerError, new Response { Status = "Error", Message = "User already exists!" });
 
+            var emailExists = await userManager.FindByEmailAsync(model.UserName);
+            if (emailExists != null)
+                return StatusCode(StatusCodes.Status500InternalServerError, new Response { Status = "Error", Message = "Email Already in use!" });
+
             ApplicationUser user = new ApplicationUser()
             {
                 Email = model.Email,
@@ -90,7 +94,7 @@ namespace API9.Controllers
             };
             var result = await userManager.CreateAsync(user, model.Password);
             if (!result.Succeeded)
-                return StatusCode(StatusCodes.Status500InternalServerError, new Response { Status = "Error", Message = "User creation failed! Please check user details and try again." });
+                return StatusCode(StatusCodes.Status500InternalServerError, new Response { Status = "Error", Message = result.ToString() });
 
             return Ok(new Response { Status = "Success", Message = "User created successfully!" });
         }
@@ -152,7 +156,7 @@ namespace API9.Controllers
 
 
         [HttpPut]
-        [Route("update Course")]
+        [Route("updateCourse")]
         public IActionResult UpdateAdmin(Course_Details C )
         {
             
